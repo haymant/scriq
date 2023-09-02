@@ -227,9 +227,9 @@ public class Evaluator extends Python3BaseVisitor<Value> {
         return Value.VOID;
     }
 
-    private Value ret;
     @Override public Value visitReturn_stmt(Python3Parser.Return_stmtContext ctx) {
-        ret = visit(ctx.expr());
+        var ret = visit(ctx.expr());
+        memory.put("return", ret);
         return ret;
     }
 
@@ -268,6 +268,7 @@ public class Evaluator extends Python3BaseVisitor<Value> {
 
     @Override public Value visit(ParseTree tree) {
         var v = super.visit(tree);
+        var ret = memory.get("return");
         if (ret != null) {
             return ret;
         } else {

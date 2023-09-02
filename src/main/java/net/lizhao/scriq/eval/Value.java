@@ -27,6 +27,10 @@ public class Value {
         return value instanceof BigDecimal;
     }
 
+    public boolean isString() {
+        return value instanceof String;
+    }
+
     @Override
     public int hashCode() {
 
@@ -59,6 +63,10 @@ public class Value {
             } else {
                 return this.value.equals(((Value)o).value);
             }
+        }
+
+        if (this.isString()) {
+            return this.value.equals(o);
         }
 
         if(value == null || o == null || o.getClass() != this.getClass()) {
