@@ -43,11 +43,27 @@ i = 10
 j = PV(i)
 return j
 ```
+## Set Evaluation Context Memory
 
+Second argument to *eval(tree, map)* is a map from *String* to *Value*. The *String* can be a variable name, 
+which is recognised by the script as a variable in execution context.
+
+```java
+    @Test
+    void testEnv() {
+        String code = "return i+j";
+        Evaluator eval = new Evaluator();
+        var map = new HashMap<String, Value>();
+        map.put("i", new Value(BigDecimal.valueOf(2.1)));
+        map.put("j", new Value(BigDecimal.valueOf(2.43)));
+        var val = eval.eval(getTree(code), map);
+        assert (val.equals(4.53));
+    }
+```
 ## Retrospect Evaluation
 
 ScriQ can record the arguments used calling a function, by giving the function start index in
-the script string.
+the script string. This is handy when the app needs to debug/analyze the execution.
 
 ```java
     @Test

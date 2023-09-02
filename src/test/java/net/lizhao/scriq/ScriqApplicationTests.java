@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -151,6 +152,17 @@ class ScriqApplicationTests {
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
         assert (val.equals(3));
+    }
+
+    @Test
+    void testEnv() {
+        String code = "return i+j";
+        Evaluator eval = new Evaluator();
+        var map = new HashMap<String, Value>();
+        map.put("i", new Value(BigDecimal.valueOf(2.1)));
+        map.put("j", new Value(BigDecimal.valueOf(2.43)));
+        var val = eval.eval(getTree(code), map);
+        assert (val.equals(4.53));
     }
 
 }
