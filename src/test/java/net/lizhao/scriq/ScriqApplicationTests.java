@@ -155,6 +155,14 @@ class ScriqApplicationTests {
     }
 
     @Test
+    void testWhileBreak() {
+        String code = "i=10\nwhile i>3:\n  i=i-1\n  if i==5:\n    break\nreturn i";
+        Evaluator eval = new Evaluator();
+        var val = eval.eval(getTree(code), new HashMap<String, Value>());
+        assert (val.equals(5));
+    }
+
+    @Test
     void testEnv() {
         String code = "return i+j";
         Evaluator eval = new Evaluator();
@@ -164,5 +172,16 @@ class ScriqApplicationTests {
         var val = eval.eval(getTree(code), map);
         assert (val.equals(4.53));
     }
+
+    @Test
+    void testPresetFuncArgs() {
+        String code = "j=PV(10,1)\nreturn j";
+        Map<Integer, Object> treeMap = new HashMap<Integer, Object>();
+        treeMap.put(2, new Value[]{new Value(BigDecimal.valueOf(50)), new Value(BigDecimal.valueOf(0))});
+        DemoFunc eval = new DemoFunc();
+        var val = eval.eval(getTree(code), new HashMap<String, Value>(), treeMap);
+        assert (val.equals(50));
+    }
+
 
 }

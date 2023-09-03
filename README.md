@@ -7,7 +7,7 @@ Add the dependency to your project, e.g., for a Maven project.
     <dependency>
       <groupId>net.lizhao</groupId>
       <artifactId>scriq</artifactId>
-      <version>0.0.5</version>
+      <version>0.0.6</version>
     </dependency>
 ```
 
@@ -26,7 +26,7 @@ ScriQ is a tiny Python variant. This is an example to evaluate ScriQ scripts.
 
 ScriQs allow the app to extend functions, instead of support function def in script.
 
-1. Derive a class from *Evaluator*, and add public function, e.g., 
+1. Derive a class from *Evaluator*, and add public function, e.g., PV is a function return the first argument's value.
 ```java
 public class DemoFunc extends Evaluator {
 
@@ -80,6 +80,20 @@ the script string. This is handy when the app needs to debug/analyze the executi
     }
 ```
 
+ScriQ also allows to preset argument values for each function calling. 
+
+```java
+    @Test
+    void testPresetFuncArgs() {
+        String code = "j=PV(10,1)\nreturn j";
+        Map<Integer, Object> treeMap = new HashMap<Integer, Object>();
+        treeMap.put(2, new Value[]{new Value(BigDecimal.valueOf(50)), new Value(BigDecimal.valueOf(0))});
+        DemoFunc eval = new DemoFunc();
+        var val = eval.eval(getTree(code), new HashMap<String, Value>(), treeMap);
+        assert (val.equals(50));
+    }
+```
+
 ## View of Grammar Tree
 
 Serializer like Jackson ObjectMapper could be use to stringify the treeMap into json string.
@@ -92,4 +106,18 @@ Serializer like Jackson ObjectMapper could be use to stringify the treeMap into 
         Evaluator.genTree(getTree(code), treeMap);
         assert (treeMap.size()>0);
     }
+```
+
+## ScriQ Grammar
+
+ScriQ is a tiny variant of Python, support the following statement:
+
+```python
+= # assignment
++,-,*,/,mod, ** # arithmetic operations
+and, or, not # boolean operators
+if i: statments elif: statements else: statements
+while i: statements
+break # as last statement in while statements
+return i # the value returned to ScriQ evaluator
 ```

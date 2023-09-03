@@ -282,9 +282,9 @@ block: simple_stmt | NEWLINE INDENT stmt+ DEDENT;
 
 print_stmt: 'print' OPEN_PAREN expr CLOSE_PAREN; // only for demonstration
 
-funcDef
+/*funcDef
     : 'def' NAME '(' arguments? ')' block
-    ;
+    ;*/
 
 funcCall
     : NAME '(' arguments? ')'

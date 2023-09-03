@@ -220,10 +220,25 @@ public class Evaluator extends Python3BaseVisitor<Value> {
             // evaluate the code block
             visit(ctx.block());
 
+            if (memory.get("break") != null) {
+                memory.remove("break");
+                break;
+            }
+
             // evaluate the expression
             value = visit(ctx.expr());
         }
 
+        return Value.VOID;
+    }
+
+    @Override public Value visitBreak_stmt(Python3Parser.Break_stmtContext ctx) {
+        memory.put("break", Value.VOID);
+        return Value.VOID;
+    }
+
+    @Override public Value visitContinue_stmt(Python3Parser.Continue_stmtContext ctx) {
+        memory.put("continue", Value.VOID);
         return Value.VOID;
     }
 
@@ -246,11 +261,16 @@ public class Evaluator extends Python3BaseVisitor<Value> {
 
         Value[] vArgs = new Value[nArgs];
         if (nArgs>0) {
-            for(int idx=0;idx<nArgs; idx++) {
-                vArgs[idx] = visit(ctx.arguments().expr(idx));
-            }
-            if (funcPos != null) {
-                funcPos.put(ctx.getStart().getStartIndex(), vArgs);
+            int sPos = ctx.getStart().getStartIndex();
+            if (funcPos != null && funcPos.get(sPos) != null) {
+                vArgs = (Value[])funcPos.get(sPos);
+            } else {
+                for(int idx=0;idx<nArgs; idx++) {
+                    vArgs[idx] = visit(ctx.arguments().expr(idx));
+                }
+                if (funcPos != null) {
+                    funcPos.put(sPos, vArgs);
+                }
             }
         }
         try {
@@ -276,19 +296,44 @@ public class Evaluator extends Python3BaseVisitor<Value> {
         }
     }
 
+    /**
+     * Memory used in evaluate.
+     */
     private Map<String, Value> memory = new HashMap<String, Value>();
+
+    /**
+     * Execute a script.
+     * @param mem a predefined memory for execution.
+     * @return the value returned from `return` statement in script.
+     */
     public Value eval(ParseTree tree, Map<String, Value> mem) {
         this.memory = mem;
         return visit(tree);
     }
 
+
+    /**
+     * Map from start position of a function call in the script string to the arguments used to call the function.
+     */
     private Map<Integer, Object> funcPos = null;
+    /**
+     * Execute a script.
+     * @param mem a predefined memory for execution.
+     * @param posMap a predefined funcPos for execution.
+     * @return the value returned from `return` statement in script.
+     */
     public Value eval(ParseTree tree, Map<String, Value> mem, Map<Integer, Object> posMap) {
         this.memory = mem;
         this.funcPos = posMap;
         return visit(tree);
     }
 
+    /**
+     * Generate Tree in map data structure.
+     * @param tree a Antlr ParseTree.
+     * @param treeMap a map to keep generated tree. It can be serialised to json string, e.g., using Jackson
+     *                objectMapper.writeValueAsString(treeMap);
+     */
     public static void genTree(ParseTree tree, Map<String, Object> treeMap) {
         if (tree instanceof TerminalNodeImpl) {
             Token token = ((TerminalNodeImpl)tree).getSymbol();
