@@ -337,7 +337,7 @@ GT : '>';
 LT : '<';
 GTEQ : '>=';
 LTEQ : '<=';
-MOD : 'mod';
+MOD : '%';
 POW : '**';
 NOT : 'not';
 

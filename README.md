@@ -7,7 +7,7 @@ Add the dependency to your project, e.g., for a Maven project.
     <dependency>
       <groupId>net.lizhao</groupId>
       <artifactId>scriq</artifactId>
-      <version>0.0.6</version>
+      <version>0.0.7</version>
     </dependency>
 ```
 
@@ -114,7 +114,7 @@ ScriQ is a tiny variant of Python, support the following statement:
 
 ```python
 = # assignment
-+,-,*,/,mod, ** # arithmetic operations
++,-,*,/,%, ** # arithmetic operations
 and, or, not # boolean operators
 if i: statments elif: statements else: statements
 while i: statements
