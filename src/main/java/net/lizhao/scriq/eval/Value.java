@@ -1,6 +1,7 @@
 package net.lizhao.scriq.eval;
 
 import java.math.BigDecimal;
+import java.util.concurrent.CompletableFuture;
 
 public class Value {
     public static Value VOID = new Value(new Object());
@@ -23,6 +24,8 @@ public class Value {
         return String.valueOf(value);
     }
 
+    public CompletableFuture<Object> asFuture() { return (CompletableFuture<Object>)value; }
+
     public boolean isBigDecimal() {
         return value instanceof BigDecimal;
     }
@@ -30,6 +33,8 @@ public class Value {
     public boolean isString() {
         return value instanceof String;
     }
+
+    public boolean isFuture() { return value instanceof CompletableFuture; }
 
     @Override
     public int hashCode() {

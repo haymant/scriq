@@ -10,7 +10,7 @@
     </parent>
     <groupId>net.lizhao</groupId>
     <artifactId>scriq</artifactId>
-    <version>0.0.7</version>
+    <version>0.0.8</version>
     <name>scriq</name>
     <properties>
         <java.version>17</java.version>

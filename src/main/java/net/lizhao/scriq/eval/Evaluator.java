@@ -14,6 +14,8 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * The instances of classes that implement script language evaluator
@@ -68,6 +70,10 @@ public class Evaluator extends Python3BaseVisitor<Value> {
     @Override public Value visitPowExpr(Python3Parser.PowExprContext ctx) {
         Value left = visit(ctx.expr(0));
         Value right = visit(ctx.expr(1));
+        if (left.isFuture()) {
+            // right as Future is not supported
+            return new Value(left.asFuture().thenApply(l-> ((BigDecimal)l).pow(right.asBigDecimal().intValue())));
+        }
         return new Value(left.asBigDecimal().pow(right.asBigDecimal().intValue()));
     }
 
@@ -83,21 +89,51 @@ public class Evaluator extends Python3BaseVisitor<Value> {
         return new Value(!value.asBoolean());
     }
 
-    @Override
-    public Value visitMultiplicationExpr(@NotNull Python3Parser.MultiplicationExprContext ctx) {
-
-        Value left = visit(ctx.expr(0));
-        Value right = visit(ctx.expr(1));
-
-        switch (ctx.op.getType()) {
+    private Value arithmeticOps(Token op, Value left, Value right) {
+        switch (op.getType()) {
             case Python3Parser.MUL:
                 return new Value(left.asBigDecimal().multiply(right.asBigDecimal()));
             case Python3Parser.DIV:
                 return new Value(left.asBigDecimal().divide(right.asBigDecimal(),MathContext.DECIMAL128));
             case Python3Parser.MOD:
                 return new Value(left.asBigDecimal().intValue() % right.asBigDecimal().intValue());
+            case Python3Parser.ADD:
+                return left.isBigDecimal() && right.isBigDecimal() ?
+                        new Value(left.asBigDecimal().add(right.asBigDecimal())) :
+                        new Value(left.asString() + right.asString());
+            case Python3Parser.SUB:
+                return new Value(left.asBigDecimal().subtract(right.asBigDecimal()));
             default:
-                throw new RuntimeException("unknown operator: " + Python3Parser.tokenNames[ctx.op.getType()]);
+                throw new RuntimeException("unknown operator: " + Python3Parser.tokenNames[op.getType()]);
+        }
+    }
+    @Override
+    public Value visitMultiplicationExpr(@NotNull Python3Parser.MultiplicationExprContext ctx) {
+
+        Value left = visit(ctx.expr(0));
+        Value right = visit(ctx.expr(1));
+
+        if (left.isFuture()) {
+            if (right.isFuture()) {
+                CompletableFuture<Void> combinedFuture
+                        = CompletableFuture.allOf(left.asFuture(), right.asFuture());
+                try {
+                    combinedFuture.get();
+                    return arithmeticOps(ctx.op, (Value)left.asFuture().get(), (Value)right.asFuture().get());
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                return new Value(left.asFuture().thenApply(l->arithmeticOps(ctx.op, (Value)l, right)));
+            }
+        } else {
+            if (right.isFuture()) {
+                return new Value(right.asFuture().thenApply(r->arithmeticOps(ctx.op, left, (Value)r)));
+            } else {
+                return arithmeticOps(ctx.op, left, right);
+            }
         }
     }
 
@@ -106,16 +142,22 @@ public class Evaluator extends Python3BaseVisitor<Value> {
 
         Value left = visit(ctx.expr(0));
         Value right = visit(ctx.expr(1));
-
-        switch (ctx.op.getType()) {
-            case Python3Parser.ADD:
-                return left.isBigDecimal() && right.isBigDecimal() ?
-                        new Value(left.asBigDecimal().add(right.asBigDecimal())) :
-                        new Value(left.asString() + right.asString());
-            case Python3Parser.SUB:
-                return new Value(left.asBigDecimal().subtract(right.asBigDecimal()));
-            default:
-                throw new RuntimeException("unknown operator: " + Python3Parser.tokenNames[ctx.op.getType()]);
+        if (left.isFuture()) {
+            if (right.isFuture()) {
+                CompletableFuture<Void> combinedFuture
+                        = CompletableFuture.allOf(left.asFuture(), right.asFuture());
+                return new Value(combinedFuture
+                        .thenApply(__-> arithmeticOps(ctx.op,
+                                (Value)left.asFuture().join(), (Value)right.asFuture().join())));
+            } else {
+                return new Value(left.asFuture().thenApply(l->arithmeticOps(ctx.op, (Value)l, right)));
+            }
+        } else {
+            if (right.isFuture()) {
+                return new Value(right.asFuture().thenApply(r->arithmeticOps(ctx.op, left, (Value)r)));
+            } else {
+                return arithmeticOps(ctx.op, left, right);
+            }
         }
     }
 
@@ -274,10 +316,17 @@ public class Evaluator extends Python3BaseVisitor<Value> {
             }
         }
         try {
-            return (Value)mtd.invoke(this, vArgs);
-        } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
+            Object ret = mtd.invoke(this, vArgs);
+            if (ret instanceof Value) {
+                return (Value)ret;
+            } else if (ret instanceof CompletableFuture) {
+                return new Value(ret);
+            } else {
+                throw new RuntimeException("unknown return type: ");
+            }
         } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
             throw new RuntimeException(e);
         }
     }
@@ -306,9 +355,15 @@ public class Evaluator extends Python3BaseVisitor<Value> {
      * @param mem a predefined memory for execution.
      * @return the value returned from `return` statement in script.
      */
-    public Value eval(ParseTree tree, Map<String, Value> mem) {
+    public Value eval(ParseTree tree, Map<String, Value> mem) throws ExecutionException, InterruptedException {
         this.memory = mem;
-        return visit(tree);
+        Value ret = visit(tree);
+        if (ret.isFuture()) {
+            Object r = ret.asFuture().get();
+            return new Value(((Value)ret.asFuture().get()).value);
+        } else {
+            return ret;
+        }
     }
 
 
@@ -322,10 +377,15 @@ public class Evaluator extends Python3BaseVisitor<Value> {
      * @param posMap a predefined funcPos for execution.
      * @return the value returned from `return` statement in script.
      */
-    public Value eval(ParseTree tree, Map<String, Value> mem, Map<Integer, Object> posMap) {
+    public Value eval(ParseTree tree, Map<String, Value> mem, Map<Integer, Object> posMap) throws ExecutionException, InterruptedException {
         this.memory = mem;
         this.funcPos = posMap;
-        return visit(tree);
+        Value ret = visit(tree);
+        if (ret.isFuture()) {
+            return (Value)((Value)ret.asFuture().get()).value;
+        } else {
+            return ret;
+        }
     }
 
     /**

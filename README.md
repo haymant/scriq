@@ -7,7 +7,7 @@ Add the dependency to your project, e.g., for a Maven project.
     <dependency>
       <groupId>net.lizhao</groupId>
       <artifactId>scriq</artifactId>
-      <version>0.0.7</version>
+      <version>0.0.8</version>
     </dependency>
 ```
 
@@ -106,6 +106,41 @@ Serializer like Jackson ObjectMapper could be use to stringify the treeMap into 
         Evaluator.genTree(getTree(code), treeMap);
         assert (treeMap.size()>0);
     }
+```
+## Async Programming
+
+```python
+# power operator allows left operand to be Future, i.e, a
+a ** b
+# +, -, *, / operators support Future as any operand
+```
+
+```java
+    // define function in class derived from Evaluator
+    public CompletableFuture<Value> getIntAsync() throws InterruptedException {
+        CompletableFuture<Value> completableFuture = new CompletableFuture<>();
+
+        Executors.newCachedThreadPool().submit(() -> {
+            Thread.sleep(500);
+            completableFuture.complete(new Value(new BigDecimal(2.0)));
+            return null;
+        });
+
+        return completableFuture;
+    }
+    
+    //test function
+    @Test
+    void testFuture() throws ExecutionException, InterruptedException {
+            String code = "j=getIntAsync()\ni=getIntAsync()\nz=i+j\nreturn z";
+            Map<Integer, Object> treeMap = new HashMap<Integer, Object>();
+        DemoFunc eval = new DemoFunc();
+        long start = System.currentTimeMillis();
+        var val = eval.eval(getTree(code), new HashMap<String, Value>());
+        long end = System.currentTimeMillis();
+        assert(end-start>500);
+        assert (val.equals(4));
+        }
 ```
 
 ## ScriQ Grammar

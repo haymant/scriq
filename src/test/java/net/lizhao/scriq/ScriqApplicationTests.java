@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.concurrent.ExecutionException;
 
 class ScriqApplicationTests {
 
@@ -30,7 +30,7 @@ class ScriqApplicationTests {
 
 
     @Test
-    void testReturn() {
+    void testReturn() throws ExecutionException, InterruptedException {
         String code = "return 1.1";
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -38,7 +38,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testAssign() {
+    void testAssign() throws ExecutionException, InterruptedException {
         String code = "i=1.2\nreturn i";
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -46,7 +46,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testIf() {
+    void testIf() throws ExecutionException, InterruptedException {
         String code = "if 1.3==1.3:\n  return 1.3\n";
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -54,7 +54,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testIfElse() {
+    void testIfElse() throws ExecutionException, InterruptedException {
         String code = "if 1==2:\n  return 1\nelse:\n  return 2.0\n";
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -62,7 +62,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testIfElif() {
+    void testIfElif() throws ExecutionException, InterruptedException {
         String code = "if 1==2:\n  return 1\nelif 2==2:\n  return 3\nelse:\n  return 2\n";
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -70,7 +70,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testIfAndComp() {
+    void testIfAndComp() throws ExecutionException, InterruptedException {
         String code = "if True and 1==2:\n  return 3\nelse:\n  return 4";
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -78,7 +78,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testIfOrComp() {
+    void testIfOrComp() throws ExecutionException, InterruptedException {
         String code = "if True or 1==2:\n  return 5\nelse:\n  return 4";
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -86,7 +86,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testFuncCall() {
+    void testFuncCall() throws ExecutionException, InterruptedException {
         String code = "i=6.1\nPV(i,2)\nreturn i";
         DemoFunc eval = new DemoFunc();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -94,7 +94,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testFuncCall1() {
+    void testFuncCall1() throws ExecutionException, InterruptedException {
         String code = "i=7\nj=PV(i,2)\nreturn j";
         DemoFunc eval = new DemoFunc();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -102,7 +102,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testFuncData() {
+    void testFuncData() throws ExecutionException, InterruptedException {
         String code = "j=PV(8,1)\ni=9.1\nPV(i,2)\nreturn i";
         DemoFunc eval = new DemoFunc();
         Map<Integer, Object> posMap = new HashMap<Integer, Object>();
@@ -123,7 +123,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testString() {
+    void testString() throws ExecutionException, InterruptedException {
         String code = "j=\"test\"\n\nreturn j";
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -131,7 +131,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testStringAdd() {
+    void testStringAdd() throws ExecutionException, InterruptedException {
         String code = "j=\"test_\" + 1\n\nreturn j";
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -139,7 +139,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testStringAdd1() {
+    void testStringAdd1() throws ExecutionException, InterruptedException {
         String code = "j=\"test_\" + \"2\"\n\nreturn j";
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -147,7 +147,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testWhile() {
+    void testWhile() throws ExecutionException, InterruptedException {
         String code = "i=10\nwhile i>3:\n  i=i-1\nreturn i";
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -155,7 +155,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testWhileBreak() {
+    void testWhileBreak() throws ExecutionException, InterruptedException {
         String code = "i=10\nwhile i>3:\n  i=i-1\n  if i==5:\n    break\nreturn i";
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
@@ -163,7 +163,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testEnv() {
+    void testEnv() throws ExecutionException, InterruptedException {
         String code = "return i+j";
         Evaluator eval = new Evaluator();
         var map = new HashMap<String, Value>();
@@ -174,7 +174,7 @@ class ScriqApplicationTests {
     }
 
     @Test
-    void testPresetFuncArgs() {
+    void testPresetFuncArgs() throws ExecutionException, InterruptedException {
         String code = "j=PV(10,1)\nreturn j";
         Map<Integer, Object> treeMap = new HashMap<Integer, Object>();
         treeMap.put(2, new Value[]{new Value(BigDecimal.valueOf(50)), new Value(BigDecimal.valueOf(0))});
@@ -183,5 +183,15 @@ class ScriqApplicationTests {
         assert (val.equals(50));
     }
 
-
+    @Test
+    void testFuture() throws ExecutionException, InterruptedException {
+        String code = "j=getIntAsync()\ni=getIntAsync()\nz=i+j\nreturn z";
+        Map<Integer, Object> treeMap = new HashMap<Integer, Object>();
+        DemoFunc eval = new DemoFunc();
+        long start = System.currentTimeMillis();
+        var val = eval.eval(getTree(code), new HashMap<String, Value>());
+        long end = System.currentTimeMillis();
+        assert(end-start>500);
+        assert (val.equals(4));
+    }
 }
