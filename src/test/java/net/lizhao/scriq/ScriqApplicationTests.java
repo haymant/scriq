@@ -106,7 +106,7 @@ class ScriqApplicationTests {
         String code = "j=PV(8,1)\ni=9.1\nPV(i,2)\nreturn i";
         DemoFunc eval = new DemoFunc();
         Map<Integer, Object> posMap = new HashMap<Integer, Object>();
-        var val = eval.eval(getTree(code), new HashMap<String, Value>(), posMap);
+        var val = eval.eval(getTree(code), new HashMap<String, Value>(), posMap, false);
         assert (val.equals(9.1));
         assert (((Value[])posMap.get(2))[0].equals(8));
         assert (((Value[])posMap.get(2))[1].equals(1));
@@ -179,13 +179,13 @@ class ScriqApplicationTests {
         Map<Integer, Object> treeMap = new HashMap<Integer, Object>();
         treeMap.put(2, new Value[]{new Value(BigDecimal.valueOf(50)), new Value(BigDecimal.valueOf(0))});
         DemoFunc eval = new DemoFunc();
-        var val = eval.eval(getTree(code), new HashMap<String, Value>(), treeMap);
+        var val = eval.eval(getTree(code), new HashMap<String, Value>(), treeMap, false);
         assert (val.equals(50));
     }
 
     @Test
     void testFuture() throws ExecutionException, InterruptedException {
-        String code = "j=getIntAsync()\ni=getIntAsync()\nz=i+j\nreturn z";
+        String code = "j=getIntAsync()+getIntAsync()\nreturn j";
         Map<Integer, Object> treeMap = new HashMap<Integer, Object>();
         DemoFunc eval = new DemoFunc();
         long start = System.currentTimeMillis();
@@ -193,5 +193,15 @@ class ScriqApplicationTests {
         long end = System.currentTimeMillis();
         assert(end-start>500);
         assert (val.equals(4));
+    }
+
+    @Test
+    void testFutureAsync() throws ExecutionException, InterruptedException {
+        String code = "j=getIntAsync()+getIntAsync()+getIntAsync()\nreturn j";
+        Map<Integer, Object> treeMap = new HashMap<Integer, Object>();
+        DemoFunc eval = new DemoFunc();
+        var val = eval.evalAsync(getTree(code), new HashMap<String, Value>());
+        assert(val.isFuture());
+        assert (val.asFuture().get().equals(6));
     }
 }

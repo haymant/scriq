@@ -7,7 +7,7 @@ Add the dependency to your project, e.g., for a Maven project.
     <dependency>
       <groupId>net.lizhao</groupId>
       <artifactId>scriq</artifactId>
-      <version>0.0.8</version>
+      <version>0.0.9</version>
     </dependency>
 ```
 
@@ -132,15 +132,25 @@ a ** b
     //test function
     @Test
     void testFuture() throws ExecutionException, InterruptedException {
-            String code = "j=getIntAsync()\ni=getIntAsync()\nz=i+j\nreturn z";
-            Map<Integer, Object> treeMap = new HashMap<Integer, Object>();
+        String code = "j=getIntAsync()\ni=getIntAsync()\nz=i+j\nreturn z";
+        Map<Integer, Object> treeMap = new HashMap<Integer, Object>();
         DemoFunc eval = new DemoFunc();
         long start = System.currentTimeMillis();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
         long end = System.currentTimeMillis();
         assert(end-start>500);
         assert (val.equals(4));
-        }
+    }
+
+    @Test
+    void testFutureAsync() throws ExecutionException, InterruptedException {
+        String code = "j=getIntAsync()+getIntAsync()+getIntAsync()\nreturn j";
+        Map<Integer, Object> treeMap = new HashMap<Integer, Object>();
+        DemoFunc eval = new DemoFunc();
+        var val = eval.evalAsync(getTree(code), new HashMap<String, Value>());
+        assert(val.isFuture());
+        assert (val.asFuture().get().equals(6));
+    }        
 ```
 
 ## ScriQ Grammar

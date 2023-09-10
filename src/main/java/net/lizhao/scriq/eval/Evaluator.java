@@ -356,14 +356,11 @@ public class Evaluator extends Python3BaseVisitor<Value> {
      * @return the value returned from `return` statement in script.
      */
     public Value eval(ParseTree tree, Map<String, Value> mem) throws ExecutionException, InterruptedException {
-        this.memory = mem;
-        Value ret = visit(tree);
-        if (ret.isFuture()) {
-            Object r = ret.asFuture().get();
-            return new Value(((Value)ret.asFuture().get()).value);
-        } else {
-            return ret;
-        }
+        return this.eval(tree, mem, null, false);
+    }
+
+    public Value evalAsync(ParseTree tree, Map<String, Value> mem) throws ExecutionException, InterruptedException {
+        return this.eval(tree, mem, null, true);
     }
 
 
@@ -375,16 +372,20 @@ public class Evaluator extends Python3BaseVisitor<Value> {
      * Execute a script.
      * @param mem a predefined memory for execution.
      * @param posMap a predefined funcPos for execution.
+     * @param async return a future or not.
      * @return the value returned from `return` statement in script.
      */
-    public Value eval(ParseTree tree, Map<String, Value> mem, Map<Integer, Object> posMap) throws ExecutionException, InterruptedException {
+    public Value eval(ParseTree tree, Map<String, Value> mem, Map<Integer, Object> posMap, boolean async) throws ExecutionException, InterruptedException {
         this.memory = mem;
         this.funcPos = posMap;
         Value ret = visit(tree);
-        if (ret.isFuture()) {
-            return (Value)((Value)ret.asFuture().get()).value;
-        } else {
+        if (!ret.isFuture()) {
             return ret;
+        }
+        if (async) {
+            return ret;
+        } else {
+            return (Value)ret.asFuture().get();
         }
     }
 
