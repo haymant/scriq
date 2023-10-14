@@ -1,8 +1,8 @@
 package net.lizhao.scriq.eval;
 
 
-import net.lizhao.scriq.Python3BaseVisitor;
-import net.lizhao.scriq.Python3Parser;
+import net.lizhao.scriq.py.Python3BaseVisitor;
+import net.lizhao.scriq.py.Python3Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.NotNull;

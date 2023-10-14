@@ -2,6 +2,9 @@ package net.lizhao.scriq;
 
 import net.lizhao.scriq.eval.Evaluator;
 import net.lizhao.scriq.eval.Value;
+import net.lizhao.scriq.py.Python3Lexer;
+import net.lizhao.scriq.py.Python3Parser;
+
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;

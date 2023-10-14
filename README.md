@@ -7,7 +7,7 @@ Add the dependency to your project, e.g., for a Maven project.
     <dependency>
       <groupId>net.lizhao</groupId>
       <artifactId>scriq</artifactId>
-      <version>0.0.9</version>
+      <version>0.0.10</version>
     </dependency>
 ```
 
@@ -165,4 +165,13 @@ if i: statments elif: statements else: statements
 while i: statements
 break # as last statement in while statements
 return i # the value returned to ScriQ evaluator
+```
+
+# Contribute
+
+
+## Publish
+
+```bash
+mvn clean deploy -P release
 ```
