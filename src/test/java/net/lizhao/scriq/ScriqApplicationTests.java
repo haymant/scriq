@@ -11,7 +11,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -138,7 +137,7 @@ class ScriqApplicationTests {
         String code = "j=\"test_\" + 1\n\nreturn j";
         Evaluator eval = new Evaluator();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
-        assert (val.equals("test_1"));
+        assert (val.equals("test_1.0"));
     }
 
     @Test
@@ -170,8 +169,8 @@ class ScriqApplicationTests {
         String code = "return i+j";
         Evaluator eval = new Evaluator();
         var map = new HashMap<String, Value>();
-        map.put("i", new Value(BigDecimal.valueOf(2.1)));
-        map.put("j", new Value(BigDecimal.valueOf(2.43)));
+        map.put("i", new Value(2.1));
+        map.put("j", new Value(2.43));
         var val = eval.eval(getTree(code), map);
         assert (val.equals(4.53));
     }
@@ -180,10 +179,57 @@ class ScriqApplicationTests {
     void testPresetFuncArgs() throws ExecutionException, InterruptedException {
         String code = "j=PV(10,1)\nreturn j";
         Map<Integer, Object> treeMap = new HashMap<Integer, Object>();
-        treeMap.put(2, new Value[]{new Value(BigDecimal.valueOf(50)), new Value(BigDecimal.valueOf(0))});
+        treeMap.put(2, new Value[]{new Value(50), new Value(0)});
         DemoFunc eval = new DemoFunc();
         var val = eval.eval(getTree(code), new HashMap<String, Value>(), treeMap, false);
         assert (val.equals(50));
+    }
+
+    @Test
+    void testMultkIdx() throws ExecutionException, InterruptedException {
+        String code = """
+                a = [1, 2, 3]
+                return a[1]
+                """;
+        Evaluator eval = new Evaluator();
+        var val = eval.eval(getTree(code), new HashMap<String, Value>());
+        assert (val.equals(2));
+    }
+
+    @Test
+    void testMultkIdx1() throws ExecutionException, InterruptedException {
+        String code = """
+                a = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9],[10, 11, 12]],[[13, 14, 15],[16, 17, 18]]]
+                return a[0,1,2]
+                """;
+        Evaluator eval = new Evaluator();
+        var val = eval.eval(getTree(code), new HashMap<String, Value>());
+        assert (val.equals(6));
+    }
+
+    @Test
+    void testMultik() throws ExecutionException, InterruptedException {
+        String code = """
+                a = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9],[10, 11, 12]],[[13, 14, 15],[16, 17, 18]]]
+                b = a[1] + a[0] - a[2] * a[1] / a[2]
+                c = b[1] * b[1]
+                return c .* c
+                """;
+        Evaluator eval = new Evaluator();
+        var val = eval.eval(getTree(code), new HashMap<String, Value>());
+        assert (val.equals(2177));
+    }
+    @Test
+    void testMultikSlice() throws ExecutionException, InterruptedException {
+        String code = """
+                a = [[[1, 2, 3], [4, 5, 6]], [[7, 8, 9],[10, 11, 12]],[[13, 14, 15],[16, 17, 18]]]
+                b =  a[1:, :, :1] 
+                c = b[0,0]
+                return c .* c
+                """;
+        Evaluator eval = new Evaluator();
+        var val = eval.eval(getTree(code), new HashMap<String, Value>());
+        assert (val.equals(113));
     }
 
     @Test
@@ -194,7 +240,7 @@ class ScriqApplicationTests {
         long start = System.currentTimeMillis();
         var val = eval.eval(getTree(code), new HashMap<String, Value>());
         long end = System.currentTimeMillis();
-        assert(end-start>500);
+        assert(end-start>=500);
         assert (val.equals(4));
     }
 

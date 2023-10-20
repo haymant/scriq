@@ -265,13 +265,31 @@ small_stmt:
   | OTHER {System.err.println("unknown char: " + $OTHER.text);}
   ;
 
-assignment_stmt: NAME '=' expr;
+assignment_stmt: NAME '=' expr | atom_expr;
 flow_stmt: break_stmt | continue_stmt;
 break_stmt: 'break';
 continue_stmt: 'continue';
 
 compound_stmt: if_stmt | while_stmt;
-import_stmt: 'import' STRING; // dummy import as syntax highlight helper
+
+import_stmt: import_name | import_from;
+import_name: 'import' dotted_as_names;
+import_from: ('from' (('.' | '...')* dotted_name | ('.' | '...')+)
+              'import' ('*' | '(' import_as_names ')' | import_as_names));
+import_as_name: NAME ('as' NAME)?;
+dotted_as_name: dotted_name ('as' NAME)?;
+import_as_names: import_as_name (',' import_as_name)* ','?;
+dotted_as_names: dotted_as_name (',' dotted_as_name)*;
+dotted_name: NAME ('.' NAME)*;
+
+atom_expr: NAME array;
+array: '[' subscriptlist ']' ;
+subscriptlist: subscript_ (',' subscript_)* ','?;
+subscript_: test | test? COL test? sliceop?;
+sliceop: ':' test?;
+test: expr;
+
+
 if_stmt: 'if' test_block ('elif' test_block)* ('else' ':' block)?;
 //if_stmt: 'if' test ':' block ('elif' test ':' block)* ('else' ':' block)?;
 
@@ -303,7 +321,7 @@ expr
  : expr POW<assoc=right> expr           #powExpr
  | SUB expr                             #unaryMinusExpr
  | NOT expr                             #notExpr
- | expr op=(MUL | DIV | MOD) expr       #multiplicationExpr
+ | expr op=(MUL | DIV | MOD | DOT) expr #multiplicationExpr
  | expr op=(ADD | SUB) expr             #additiveExpr
  | expr op=(LTEQ | GTEQ | LT | GT) expr #relationalExpr
  | expr op=(EQ | NEQ) expr              #equalityExpr
@@ -311,6 +329,8 @@ expr
  | expr OR expr                         #orExpr
  | funcCall                             #funcExpr
  | atom                                 #atomExpr
+ | atom_expr                            #atomExpExpr
+ | array                                #arrayExpr
  ;
 
 atom
@@ -329,6 +349,7 @@ ADD :   '+' ;
 SUB :   '-' ;
 MUL :   '*' ;
 DIV :   '/' ;
+DOT :   '.*' ;
 OR : 'or';
 AND : 'and';
 EQ : '==';
@@ -340,6 +361,7 @@ LTEQ : '<=';
 MOD : '%';
 POW : '**';
 NOT : 'not';
+COL : ':';
 
 STRING
  : STRING_LITERAL

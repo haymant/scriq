@@ -18,7 +18,7 @@ public class DemoFunc extends Evaluator {
 
         Executors.newCachedThreadPool().submit(() -> {
             Thread.sleep(500);
-            completableFuture.complete(new Value(new BigDecimal(2.0)));
+            completableFuture.complete(new Value(2.0));
             return null;
         });
 

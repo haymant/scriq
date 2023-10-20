@@ -7,7 +7,7 @@ Add the dependency to your project, e.g., for a Maven project.
     <dependency>
       <groupId>net.lizhao</groupId>
       <artifactId>scriq</artifactId>
-      <version>0.0.10</version>
+      <version>0.0.11-multik</version>
     </dependency>
 ```
 

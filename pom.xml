@@ -11,10 +11,11 @@
 	</parent>
 	<groupId>net.lizhao</groupId>
 	<artifactId>scriq</artifactId>
-	<version>0.0.10</version>
+	<version>0.0.11-multik</version>
 	<name>scriq</name>
 	<properties>
 		<java.version>17</java.version>
+		<kotlin.version>1.9.10</kotlin.version>
 	</properties>
 
 	<description>
@@ -103,7 +104,23 @@
 		</profile>
 	</profiles>
 
+
 	<dependencies>
+		<dependency>
+			<groupId>org.jetbrains.kotlin</groupId>
+			<artifactId>kotlin-stdlib</artifactId>
+			<version>${kotlin.version}</version>
+		</dependency>
+		<dependency>
+			<artifactId>multik-core</artifactId>
+			<groupId>org.jetbrains.kotlinx</groupId>
+			<version>0.2.2</version>
+		</dependency>
+		<dependency>
+			<artifactId>multik-default-jvm</artifactId>
+			<groupId>org.jetbrains.kotlinx</groupId>
+			<version>0.2.2</version>
+		</dependency>
 		<dependency>
 			<groupId>org.antlr</groupId>
 			<artifactId>antlr4-runtime</artifactId>
@@ -160,6 +177,8 @@
 							<goal>rename</goal>
 						</goals>
 						<configuration>
+							<ignoreFileNotFoundOnIncremental>true</ignoreFileNotFoundOnIncremental>
+							<overWrite>true</overWrite>
 							<sourceFile>
 								${basedir}/target/generated-sources/antlr4/net.lizhao.scriq.py</sourceFile>
 							<destinationFile>
@@ -233,6 +252,66 @@
 			<plugin>
 				<artifactId>maven-project-info-reports-plugin</artifactId>
 				<version>3.4.5</version>
+			</plugin>
+			<plugin>
+				<groupId>org.jetbrains.kotlin</groupId>
+				<artifactId>kotlin-maven-plugin</artifactId>
+				<version>${kotlin.version}</version>
+				<executions>
+					<execution>
+						<id>compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<sourceDirs>
+								<source>target/generated-sources/antlr4</source>
+								<source>src/main/java</source>
+								<source>target/generated-sources/annotations</source>
+								<source>target/generated-sources/antlr4</source>
+							</sourceDirs>
+						</configuration>
+					</execution>
+					<execution>
+						<id>test-compile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>test-compile</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<jvmTarget>1.8</jvmTarget>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>default-compile</id>
+						<phase>none</phase>
+					</execution>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>none</phase>
+					</execution>
+					<execution>
+						<id>compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>testCompile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
